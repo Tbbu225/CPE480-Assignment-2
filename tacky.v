@@ -327,3 +327,23 @@ initial begin
 end
 endmodule
 
+module ALU(op, acc, regIn, resultout):
+input wire `Opcode op;
+output wire `Regsize resultout; input wire `Regsize acc, regIn;
+wire signed `RegValue resultValue, accValue, regInValue; 
+assign resultValue = resultout `RegValue;
+assign accValue = acc `RegValue;
+assign regInValue = regIn `RegValue;
+assign resultout `RegType = acc `RegType; //do we even need this?
+case (op)
+	'OPadd: assign resultValue = (accValue + regInValue);end 
+	'OPsub: assign resultValue  = (accValue - regInValue) ;end
+	'OPand: assign resultValue  = (accValue & regInValue) ;end
+	'OPmul: assign resultValue  = (accValue * regInValue) ;end
+	'OPdiv: assign resultValue  = (accValue / regInValue) ;end
+	'OPor: assign resultValue  = (accValue | regInValue);end
+	'OPxor: assign resultValue  = (accValue ^ regInValue) ;end
+	'OPnot: assign resultValue  = (~accValue) ;end
+	default: end;
+endcase
+endmodule
