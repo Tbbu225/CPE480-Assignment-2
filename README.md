@@ -5,4 +5,5 @@ done for the Spring 2019 CPE480 class at the University of Kentucky.
 
 Authors:
 Tyler Burkett
-Alex 
+Alex Nguyen
+Joshua Flout
