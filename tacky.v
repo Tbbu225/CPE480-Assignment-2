@@ -67,7 +67,7 @@
 `define Jr_Reg1         2'b10
 `define Jr_Reg2         2'b11
 
-
+//PC and jump logic
 module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk);
 //output `Word next_pc;
 output reg `Word pc; 
@@ -142,6 +142,8 @@ assign new_pc = pc_result;
 
 endmodule
 
+/*
+//test for pc and jump logic
 module test_control;
 reg `Word reg1, reg2, immediate; reg `Opcode op1, op2; reg clk;
 wire `Word pc;
@@ -187,9 +189,9 @@ begin
     #2 op2 = `OPadd;
     #20 $finish;
 end
-
-
 endmodule
+*/
+
 /*
 module test_jp;
 reg `Word pc, reg1, reg2, immediate;
@@ -243,6 +245,50 @@ end
 
 endmodule
 */
+
+module tacky_instruction_mem(instruction, pc);
+output `Word instruction; input `Word pc;
+
+reg `Word memory `MemSize;
+
+initial 
+begin
+    $readmemh("instructions.vmem", memory);
+end
+
+assign instruction = memory [pc];
+endmodule
+
+module test_memory;
+reg `Word reg1, reg2, immediate; reg `Opcode op1, op2; reg clk;
+wire `Word pc, instruction;
+
+
+tacky_jump jump(pc, instruction `Opcode1 , instruction `Opcode2, immediate, reg1, reg2, clk);
+tacky_instruction_mem instructions(instruction, pc);
+
+initial 
+begin
+    $dumpfile("test-instruction-mem.vcd");
+    $dumpvars(0, pc);
+    $dumpvars(0, clk);
+    $dumpvars(0, jump);
+    $dumpvars(0, instructions);
+    immediate = 24;
+    reg1 = 0;
+    reg2 = 1;
+    clk = 0;
+    #1 while(1) #1 clk = ~clk;
+end
+
+initial 
+begin
+    #20 reg2 = 8;
+    #400 $finish;
+end
+
+endmodule
+
 
 
 
