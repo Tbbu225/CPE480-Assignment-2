@@ -8,11 +8,14 @@
 `define Reg1    [10:8]
 `define Reg2    [2:0]
 `define Imm8    [7:0]
-`define State	[4:0]
 `define RegSize [16:0]
+`define RegNum  [7:0]
 `define RegType [16]
 `define RegValue[15:0]
 `define MemSize [65535:0]
+`define NumReg  8
+`define Acc0    [0]
+`define Acc1    [1]
 
 // opcode values, also state numbers
 `define OPnot	5'b00000
@@ -68,10 +71,10 @@
 `define Jr_Reg2         2'b11
 
 //PC and jump logic
-module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk);
+module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk, reset);
 //output `Word next_pc;
 output reg `Word pc; 
-input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk;
+input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk, reset;
 
 reg `Signal signal;
 //reg `Word pc;
@@ -95,9 +98,10 @@ begin
     else                       signal = {`Jr_None, `PCinc};
 end
 
-always @(posedge clk) 
+always @(posedge clk or posedge reset) 
 begin
-    pc <= next_pc;
+    if(reset == 0) pc <= next_pc;
+    else pc <= 0;
 end
 
 endmodule
@@ -246,19 +250,28 @@ end
 endmodule
 */
 
-module tacky_instruction_mem(instruction, pc);
-output `Word instruction; input `Word pc;
+//Instruction memory
+module tacky_instruction_mem(instruction, pc, reset);
+output `Word instruction; input `Word pc; input reset;
 
 reg `Word memory `MemSize;
 
 initial 
 begin
     $readmemh("instructions.vmem", memory);
+    //$readmemh0(memory);
 end
 
 assign instruction = memory [pc];
+
+always @ (posedge reset) 
+begin
+    $readmemh("instructions.vmem", memory);
+    //$readmemh0(memory);
+end
 endmodule
 
+/*
 module test_memory;
 reg `Word reg1, reg2, immediate; reg `Opcode op1, op2; reg clk;
 wire `Word pc, instruction;
@@ -288,9 +301,110 @@ begin
 end
 
 endmodule
+*/
 
+//Register file. Handles determining which values to load based on current opcode(s). 
+module tacky_register_file(reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
 
+output reg `Regsize reg1_value, reg2_value, r0_value, r1_value;
+input `Reg reg1, reg2;
+input `Imm8 Imm8_to_pre;
+input `Word r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2;
+input `Opcode1 op1, op2;
+input clk;
 
+reg `RegSize registers `RegNum;
+reg `HalfWord pre;
+
+initial 
+begin
+    for (i = 0; i < `NumReg; i = i + 1)
+    begin
+        register[i] = 0;
+    end
+    pre = 0;
+end
+
+assign reg1_value = registers[reg1];
+assign reg2_value = registers[reg2];
+assign r0_value = registers`Acc0;
+assign r1_value = registers`Acc1;
+
+always @(negedge clk)
+begin
+    //ALU operations
+    if(op1 <= `OPslt) registers`Acc0 <= r0Str;
+    if(op1 <= `OPcvt && op2 <= `OPslt) registers`Acc1 <= r1Str;
+    
+    //Pre
+    if(op1 == `OPpre) pre <= Imm8_to_pre;
+    
+    //Load immediate
+    if(op1 == `OPcf8) registers[reg1] <= {`Float, RegStr_Imm16};
+    if(op1 == `OPci8) registers[reg1] <= {`In, RegStr_Imm16};
+    
+    //Load from memory
+    if(op1 == `OPlf) registers[reg1] <= {`Float, DataStr1}; 
+    if(op1 <= `OPcvt && op2 == `OPlf) registers[reg2] <= {`Float, DataStr2};
+    if(op1 == `OPli) registers[reg1] <= {`Int, DataStr1};
+    if(op1 <= `OPcvt && op2 == `OPli) registers[reg2] <= {`Int, DataStr2};
+    
+    //Accumulator <-> register
+    if(op1 == `OPa2r) registers[reg1] <= registers`Acc0;
+    if(op1 <= `OPcvt && op2 == `OPa2r) registers[reg2] <= registers`Acc1;
+    if(op1 == `OPr2a) registers`Acc0 <= registers[reg1];
+    if(op1 <= `OPcvt && op2 == `OPr2a) registers`Acc1 <= registers[reg2];
+    
+    //Conversion
+    if(op1 == `OPcvt) registers[reg1]`RegType <= ~registers[reg1]`RegType;
+    if(op1 <= `OPcvt && op2 == `OPcvt) registers[reg2]`RegType <= ~registers[reg2]`RegType;
+end
+
+always @(posedge reset) 
+begin
+    for (i = 0; i < `NumReg; i = i + 1)
+    begin
+        register[i] = 0;
+    end
+    pre = 0;
+end
+
+endmodule 
+
+//External module which prepends pre register to immediate value in instruction.
+//Ignored if not needed.
+module prepend(Imm16, pre, Imm8);
+    output `Word Imm16;
+    input `HalfWord pre, Imm8;
+    assign Imm16 = {pre, Imm8};
+endmodule
+
+//Data memory (WIP)
+module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1);
+output `Word reg1Str, reg2Str;
+input `Word reg1, reg2, r0, r1; input `Opcode op1, op2;
+
+reg `Word memory `MemSize;
+
+initial 
+begin
+    $readmemh("data.vmem", memory);
+    //$readmemh1(memory);
+end
+/*
+always @(*)
+begin
+    
+end
+*/
+
+always @ (posedge reset) 
+begin
+    $readmemh("data.vmem", memory);
+    //$readmemh1(memory);
+end
+
+endmodule
 
 
 
@@ -377,12 +491,12 @@ endmodule
 
 // Floating-point reciprocal, 16-bit r=1.0/a
 // Note: requires initialized inverse fraction lookup table
-/*
 module frecip(r, a);
 output wire `FLOAT r;
 input wire `FLOAT a;
 reg [6:0] look[127:0];
-initial $readmemh0(look);
+initial $readmemh("lookup.vmem", look);
+//initial $readmemh2(look);
 assign r `FSIGN = a `FSIGN;
 assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
 assign r `FFRAC = look[a `FFRAC];
