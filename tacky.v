@@ -28,13 +28,13 @@
 `define OPdiv	5'b00111
 `define OPsh	5'b01000
 `define OPslt	5'b01001
-`define OPjr	5'b01010
+`define OPcvt 	5'b01010
 `define OPlf	5'b01011
 `define OPli	5'b01100
 `define OPr2a	5'b01101
 `define OPa2r	5'b01110
 `define OPst	5'b01111
-`define OPcvt   5'b10000
+`define OPjr    5'b10000
 `define OPjnz8  5'b11001
 `define OPjz8   5'b11010
 `define OPjp8   5'b11011
@@ -71,13 +71,11 @@
 `define Jr_Reg2         2'b11
 
 //PC and jump logic
-module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk, reset);
-//output `Word next_pc;
+module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk, reset, halt);
 output reg `Word pc; 
-input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk, reset;
+input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk, reset, halt;
 
 reg `Signal signal;
-//reg `Word pc;
 wire `Word next_pc;
 
 initial 
@@ -90,25 +88,27 @@ counter count(next_pc, immediate, reg1, reg2, signal, pc);
 
 always @(op1, op2) 
 begin
-    if(op1 == `OPjp8)          signal = {`Jr_None, `UseImm8};
-    else if(op1 == `OPjz8)     signal = {`Jr_None, `Reg_is_0};
-    else if(op1 == `OPjnz8)    signal = {`Jr_None, `Reg_is_not_0};
-    else if(op1 == `OPjr)      signal = {`Jr_Reg1, `PCinc};
-    else if(op2 == `OPjr)      signal = {`Jr_Reg2, `PCinc};
-    else                       signal = {`Jr_None, `PCinc};
+    if(op1 == `OPjp8)                           signal = {`Jr_None, `UseImm8};
+    else if(op1 == `OPjz8)                      signal = {`Jr_None, `Reg_is_0};
+    else if(op1 == `OPjnz8)                     signal = {`Jr_None, `Reg_is_not_0};
+    else if(op1 == `OPjr)                       signal = {`Jr_Reg1, `PCinc};
+    else if(op1 < `OPjr && op2 == `OPjr)        signal = {`Jr_Reg2, `PCinc};
+    else                                        signal = {`Jr_None, `PCinc};
 end
 
-always @(posedge clk or posedge reset) 
+always @(posedge clk) 
 begin
-    if(reset == 0) pc <= next_pc;
-    else pc <= 0;
+    if( !(reset || halt) ) pc <= next_pc;
+    else if (!halt) pc <= 0;
 end
 
 endmodule
 
 //Incrementer for pc
 module incrementer(newpc, pc);
-    output `Word newpc; input `Word pc; 
+    output `Word newpc; 
+    input `Word pc; 
+    
     assign newpc = pc + 1;
 endmodule
 
@@ -116,7 +116,9 @@ endmodule
 //Compare to see if a register value is or is not 0, as well as directly set the result if needed. 
 //Used for jnz8, jp8, and jz8 (2b'00 is for none of them).
 module compare_to_0(result, value, condition);
-output reg result; input `Word value; input [1:0] condition;
+output reg result; 
+input `Word value; input [1:0] condition;
+
 always @(*)
     case(condition)
         `PCinc: result = 0;
@@ -143,6 +145,14 @@ assign pc_inc_vs_immediate = (compare_result) ? immediate : pc_inc;
 assign reg1_vs_reg2 = (control_logic `Reg_Value) ? reg2 : reg1;
 assign pc_result = (control_logic `Jr_Load) ?  reg1_vs_reg2 : pc_inc_vs_immediate;
 assign new_pc = pc_result;
+
+endmodule
+
+module tacky_halt(halt, op1, reset);
+output halt, reset;
+input `OPcode op1;
+
+assign halt = (op1 == `OPSys && !reset) ? 1'b1 : 1'b0; 
 
 endmodule
 
@@ -252,7 +262,8 @@ endmodule
 
 //Instruction memory
 module tacky_instruction_mem(instruction, pc, reset);
-output `Word instruction; input `Word pc; input reset;
+output `Word instruction; 
+input `Word pc; input reset;
 
 reg `Word memory `MemSize;
 
@@ -269,6 +280,7 @@ begin
     $readmemh("instructions.vmem", memory);
     //$readmemh0(memory);
 end
+
 endmodule
 
 /*
@@ -333,8 +345,8 @@ assign r1_value = registers`Acc1;
 always @(negedge clk)
 begin
     //ALU operations
-    if(op1 <= `OPslt) registers`Acc0 <= r0Str;
-    if(op1 <= `OPcvt && op2 <= `OPslt) registers`Acc1 <= r1Str;
+    if(op1 <= `OPslt) registers `Acc0 <= r0Str;
+    if(op1 <= `OPjr && op2 <= `OPslt) registers `Acc1 <= r1Str;
     
     //Pre
     if(op1 == `OPpre) pre <= Imm8_to_pre;
@@ -345,19 +357,15 @@ begin
     
     //Load from memory
     if(op1 == `OPlf) registers[reg1] <= {`Float, DataStr1}; 
-    if(op1 <= `OPcvt && op2 == `OPlf) registers[reg2] <= {`Float, DataStr2};
+    if(op1 <= `OPjr && op2 == `OPlf) registers[reg2] <= {`Float, DataStr2};
     if(op1 == `OPli) registers[reg1] <= {`Int, DataStr1};
-    if(op1 <= `OPcvt && op2 == `OPli) registers[reg2] <= {`Int, DataStr2};
+    if(op1 <= `OPjr && op2 == `OPli) registers[reg2] <= {`Int, DataStr2};
     
     //Accumulator <-> register
     if(op1 == `OPa2r) registers[reg1] <= registers`Acc0;
-    if(op1 <= `OPcvt && op2 == `OPa2r) registers[reg2] <= registers`Acc1;
+    if(op1 <= `OPjr && op2 == `OPa2r) registers[reg2] <= registers`Acc1;
     if(op1 == `OPr2a) registers`Acc0 <= registers[reg1];
-    if(op1 <= `OPcvt && op2 == `OPr2a) registers`Acc1 <= registers[reg2];
-    
-    //Conversion
-    if(op1 == `OPcvt) registers[reg1]`RegType <= ~registers[reg1]`RegType;
-    if(op1 <= `OPcvt && op2 == `OPcvt) registers[reg2]`RegType <= ~registers[reg2]`RegType;
+    if(op1 <= `OPjr && op2 == `OPr2a) registers`Acc1 <= registers[reg2];
 end
 
 always @(posedge reset) 
@@ -391,12 +399,15 @@ begin
     $readmemh("data.vmem", memory);
     //$readmemh1(memory);
 end
-/*
+
 always @(*)
+    if(op1 == `OPst) memory[reg1] = r0;
+    if(op1 <= `OPjr && op2 == `OPst) memory[reg2] = r1;
+    if(op1 == `OPlf || op1 == `OPli) reg1Str = memory[r0];
+    if(op1 <= `OPjr && (op2 == `OPlf || op2 == `OPli) ) reg2Str = memory[r1];
 begin
     
 end
-*/
 
 always @ (posedge reset) 
 begin
@@ -405,8 +416,6 @@ begin
 end
 
 endmodule
-
-
 
 
 
@@ -501,7 +510,6 @@ assign r `FSIGN = a `FSIGN;
 assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
 assign r `FFRAC = look[a `FFRAC];
 endmodule
-*/
 
 // Floating-point shift, 16 bit
 // Shift +left,-right by integer
