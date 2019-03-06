@@ -582,3 +582,56 @@ initial begin
 end
 endmodule
 */
+
+module sh(out, a, b); //out = a >> b (b positive) or a << b (b negative)
+input signed `RegValue a, b;
+output `RegValue out;
+wire `INT flip = 0-b;
+assign out = ((b>=0) ? (a >> b) : (a << flip));
+endmodule
+
+module ALU(op, acc, regIn, resultout);
+input `Opcode op;
+input `RegSize acc, regIn;
+output reg `RegSize resultout;
+wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
+wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
+wire `RegValue shifted, setLess;
+
+sh shift(shifted, accValue, regInValue); 
+fadd floatadd(floatAdd, acc `RegValue, regIn `RegValue);
+fadd floatsub(floatSub, acc `RegValue, regIn `RegValue);
+frecip floatrecip(floatRecip, regIn `RegValue);
+fmul floatmul(floatMul, acc `RegValue, regIn `RegValue);
+fmul floatdiv(floatDiv, acc `RegValue, floatRecip `RegValue);
+
+wire `INT intC, floatC;
+f2i floatreg(intC, regIn `RegValue);
+i2f intreg(floatC, regIn `RegValue);
+
+always @*
+begin
+casez ({acc `RegType, op})
+{`Float, `OPadd}: resultout = {acc `RegType, floatAdd};
+{`Float, `OPsub}: resultout = {acc `RegType, floatSub};
+{`Float, `OPmul}: resultout = {acc `RegType, floatMul};
+{`Float, `OPdiv}: resultout = {acc `RegType, floatDiv};
+{`Float, `OPcvt}: resultout = {`Int, intC};
+{`Int, `OPcvt}: resultout = {`Float, floatC};
+{`Int, `OPadd}: resultout ={acc `RegType,  (accValue + regInValue)};
+{`Int, `OPsub}: resultout = {acc `RegType, (accValue - regInValue)};
+{`Int, `OPmul}: resultout = {acc `RegType, (accValue * regInValue)};
+{`Int, `OPdiv}: resultout = {acc `RegType, (accValue / regInValue)};
+{1'b?, `OPand}: resultout = {acc `RegType, (accValue & regInValue)};
+{1'b?, `OPor} : resultout = {acc `RegType, (accValue | regInValue)};
+{1'b?, `OPxor}:resultout = {acc `RegType, (accValue ^ regInValue)};
+{1'b?, `OPnot}: resultout = {acc `RegType, (~accValue)};
+{1'b?, `OPa2r}: resultout = acc;
+{1'b?, `OPr2a}: resultout = regIn;
+{1'b?, `OPsh}: resultout = {acc `RegType, shifted};
+{`Float, `OPslt}: resultout = {`Int, setLess};
+{`Int, `OPslt}: resultout = {`Int, accValue < regInValue };
+endcase
+end 
+endmodule
+
