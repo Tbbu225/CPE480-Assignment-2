@@ -156,110 +156,6 @@ assign halt = (op1 == `OPsys) ? 1'b1 : 1'b0;
 
 endmodule
 
-/*
-//test for pc and jump logic
-module test_control;
-reg `Word reg1, reg2, immediate; reg `Opcode op1, op2; reg clk;
-wire `Word pc;
-
-tacky_jump jump(pc, op1, op2, immediate, reg1, reg2, clk);
-
-initial 
-begin
-    $dumpfile("test-jumps.vcd");
-    $dumpvars(0, pc);
-    $dumpvars(0, clk);
-    $dumpvars(0, jump);
-    op1 = `OPadd;
-    op2 = `OPadd;
-    immediate = 16'h0f0f;
-    reg1 = 0;
-    reg2 = 1;
-    clk = 0;
-    #1 while(1) 
-    begin
-        #1 clk = ~clk;
-    end
-end
-
-initial 
-begin
-    #20 op1 = `OPjp8;
-    #2 op1 = `OPadd;
-    #20 op1 = `OPjnz8;
-    #2 op1 = `OPadd;
-    #2  reg1 = 1;
-    #20 op1 = `OPjnz8;
-    #2 op1 = `OPadd;
-    #20 op1 = `OPjz8;
-    #2 op1 = `OPadd;
-    #2 reg1 = 0;
-    #20 op1 = `OPjz8;
-    #2 op1 = `OPadd;
-    #2 reg1 = 16'h0ff0; reg2 = 16'hf00f;
-    #20 op1 = `OPjr;
-    #2 op1 = `OPadd;
-    #20 op1 = `OPadd; op2 = `OPjr;
-    #2 op2 = `OPadd;
-    #20 $finish;
-end
-endmodule
-*/
-
-/*
-module test_jp;
-reg `Word pc, reg1, reg2, immediate;
-reg `Signal signal;
-reg clk = 0;
-wire `Word result;
-
-counter count(result, immediate, reg1, reg2, signal, pc);
-
-
-
-always @(posedge clk) 
-begin
-    pc <= result;
-end
-
-initial begin
-    $dumpfile("test.vcd");
-    $dumpvars(0, pc);
-    pc = 0;
-    reg1 = 16'h00ff;
-    reg2 = 16'h0ff0;
-    immediate = 16'h1234;
-    signal = 4'h0;
-    while(pc < 16'hffff) begin
-    #1 clk = 1;
-    #1 clk = 0;
-    end
-    $finish;
-end
-
-initial begin
-    #50 signal = 4'h2;
-    #10 signal = 4'h0;
-    
-    #10 reg1 = 0;
-    #10 signal = 4'h1;
-    #10 signal = 4'h0;
-    #10 reg1 = 16'h00ff;
-    
-    #1 signal = 4'h3;
-    #10 signal = 4'h0;
-    
-    #10 signal = 4'h8;
-
-    #10 signal = 4'hc;
-    
-    #10 signal = 4'h0;
-
-end
-
-endmodule
-*/
-
 //Instruction memory
 module tacky_instruction_mem(instruction, pc, reset);
 output `Word instruction; 
@@ -282,38 +178,6 @@ begin
 end
 
 endmodule
-
-/*
-module test_memory;
-reg `Word reg1, reg2, immediate; reg `Opcode op1, op2; reg clk;
-wire `Word pc, instruction;
-
-
-tacky_jump jump(pc, instruction `Opcode1 , instruction `Opcode2, immediate, reg1, reg2, clk);
-tacky_instruction_mem instructions(instruction, pc);
-
-initial 
-begin
-    $dumpfile("test-instruction-mem.vcd");
-    $dumpvars(0, pc);
-    $dumpvars(0, clk);
-    $dumpvars(0, jump);
-    $dumpvars(0, instructions);
-    immediate = 24;
-    reg1 = 0;
-    reg2 = 1;
-    clk = 0;
-    #1 while(1) #1 clk = ~clk;
-end
-
-initial 
-begin
-    #20 reg2 = 8;
-    #400 $finish;
-end
-
-endmodule
-*/
 
 //Register file. Handles determining which values to load based on current opcode(s). 
 module tacky_register_file(pre_value, reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
@@ -606,6 +470,7 @@ begin
 end 
 endmodule
 
+//Complete processor
 module tacky_processor(halt, reset, clk);
 output halt;
 input reset, clk;
