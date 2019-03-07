@@ -556,7 +556,8 @@ wire `INT flip = 0-b;
 assign out = ((b>=0) ? (a >> b) : (a << flip));
 endmodule
 
-module ALU(op, acc, regIn, resultout);
+//ALU unit
+module tacky_ALU(op, acc, regIn, resultout);
 input `Opcode op;
 input `RegSize acc, regIn;
 output reg `RegSize resultout;
