@@ -13,9 +13,9 @@
 `define RegType [16]
 `define RegValue[15:0]
 `define MemSize [65535:0]
-`define NumReg  8
 `define Acc0    [0]
 `define Acc1    [1]
+`define NumReg  8
 
 // opcode values, also state numbers
 `define OPnot	5'b00000
@@ -71,9 +71,9 @@
 `define Jr_Reg2         2'b11
 
 //PC and jump logic
-module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk, reset, halt);
+module tacky_jump(pc, op1, op2, immediate, reg1, reg2, clk, reset);
 output reg `Word pc; 
-input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk, reset, halt;
+input `Word reg1, reg2, immediate; input `Opcode op1, op2; input clk, reset;
 
 reg `Signal signal;
 wire `Word next_pc;
@@ -98,8 +98,8 @@ end
 
 always @(posedge clk) 
 begin
-    if( !(reset || halt) ) pc <= next_pc;
-    else if (!halt) pc <= 0;
+    if(!reset) pc <= next_pc;
+    else pc <= 0;
 end
 
 endmodule
@@ -148,11 +148,11 @@ assign new_pc = pc_result;
 
 endmodule
 
-module tacky_halt(halt, op1, reset);
-output halt, reset;
-input `OPcode op1;
+module tacky_halt(halt, op1);
+output halt;
+input `Opcode op1;
 
-assign halt = (op1 == `OPSys && !reset) ? 1'b1 : 1'b0; 
+assign halt = (op1 == `OPsys) ? 1'b1 : 1'b0; 
 
 endmodule
 
@@ -318,21 +318,23 @@ endmodule
 //Register file. Handles determining which values to load based on current opcode(s). 
 module tacky_register_file(reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
 
-output reg `Regsize reg1_value, reg2_value, r0_value, r1_value;
+output `RegSize reg1_value, reg2_value, r0_value, r1_value;
 input `Reg reg1, reg2;
 input `Imm8 Imm8_to_pre;
 input `Word r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2;
 input `Opcode1 op1, op2;
-input clk;
+input clk, reset;
 
 reg `RegSize registers `RegNum;
 reg `HalfWord pre;
+
+reg i;
 
 initial 
 begin
     for (i = 0; i < `NumReg; i = i + 1)
     begin
-        register[i] = 0;
+        registers[i] = 0;
     end
     pre = 0;
 end
@@ -353,7 +355,7 @@ begin
     
     //Load immediate
     if(op1 == `OPcf8) registers[reg1] <= {`Float, RegStr_Imm16};
-    if(op1 == `OPci8) registers[reg1] <= {`In, RegStr_Imm16};
+    if(op1 == `OPci8) registers[reg1] <= {`Int, RegStr_Imm16};
     
     //Load from memory
     if(op1 == `OPlf) registers[reg1] <= {`Float, DataStr1}; 
@@ -372,7 +374,7 @@ always @(posedge reset)
 begin
     for (i = 0; i < `NumReg; i = i + 1)
     begin
-        register[i] = 0;
+        registers[i] = 0;
     end
     pre = 0;
 end
@@ -381,16 +383,16 @@ endmodule
 
 //External module which prepends pre register to immediate value in instruction.
 //Ignored if not needed.
-module prepend(Imm16, pre, Imm8);
+module tacky_prepend(Imm16, pre, Imm8);
     output `Word Imm16;
     input `HalfWord pre, Imm8;
     assign Imm16 = {pre, Imm8};
 endmodule
 
 //Data memory (WIP)
-module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1);
-output `Word reg1Str, reg2Str;
-input `Word reg1, reg2, r0, r1; input `Opcode op1, op2;
+module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1, reset);
+output reg `Word reg1Str, reg2Str;
+input `Word reg1, reg2, r0, r1; input `Opcode op1, op2; input reset;
 
 reg `Word memory `MemSize;
 
@@ -401,12 +403,11 @@ begin
 end
 
 always @(*)
+begin
     if(op1 == `OPst) memory[reg1] = r0;
     if(op1 <= `OPjr && op2 == `OPst) memory[reg2] = r1;
     if(op1 == `OPlf || op1 == `OPli) reg1Str = memory[r0];
     if(op1 <= `OPjr && (op2 == `OPlf || op2 == `OPli) ) reg2Str = memory[r1];
-begin
-    
 end
 
 always @ (posedge reset) 
@@ -414,83 +415,8 @@ begin
     $readmemh("data.vmem", memory);
     //$readmemh1(memory);
 end
+
 endmodule
-
-module sh(out, a, b); //out = a >> b (b positive) or a << b (b negative)
-input signed `RegValue a, b;
-output `RegValue out;
-wire `INT flip = 0-b;
-assign out = ((b>=0) ? (a >> b) : (a << flip));
-endmodule
-
-module ALU(op, acc, regIn, resultout);
-input `Opcode op;
-input `RegSize acc, regIn;
-output reg `RegSize resultout;
-wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
-wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
-wire `RegValue shifted, setLess;
-
-sh shift(shifted, accValue, regInValue); 
-fadd floatadd(floatAdd, acc `RegValue, regIn `RegValue);
-fadd floatsub(floatSub, acc `RegValue, regIn `RegValue);
-frecip floatrecip(floatRecip, regIn `RegValue);
-fmul floatmul(floatMul, acc `RegValue, regIn `RegValue);
-fmul floatdiv(floatDiv, acc `RegValue, floatRecip `RegValue);
-
-wire `INT intC, floatC;
-f2i floatreg(intC, regIn `RegValue);
-i2f intreg(floatC, regIn `RegValue);
-
-always @(*)
-begin
-    casez ({acc `RegType, op})
-        {`Float, `OPadd}: resultout = {acc `RegType, floatAdd};
-        {`Float, `OPsub}: resultout = {acc `RegType, floatSub};
-        {`Float, `OPmul}: resultout = {acc `RegType, floatMul};
-        {`Float, `OPdiv}: resultout = {acc `RegType, floatDiv};
-        {`Float, `OPcvt}: resultout = {`Int, intC};
-        {`Int, `OPcvt}: resultout = {`Float, floatC};
-        {`Int, `OPadd}: resultout ={acc `RegType,  (accValue + regInValue)};
-        {`Int, `OPsub}: resultout = {acc `RegType, (accValue - regInValue)};
-        {`Int, `OPmul}: resultout = {acc `RegType, (accValue * regInValue)};
-        {`Int, `OPdiv}: resultout = {acc `RegType, (accValue / regInValue)};
-        {1'b?, `OPand}: resultout = {acc `RegType, (accValue & regInValue)};
-        {1'b?, `OPor} : resultout = {acc `RegType, (accValue | regInValue)};
-        {1'b?, `OPxor}:resultout = {acc `RegType, (accValue ^ regInValue)};
-        {1'b?, `OPnot}: resultout = {acc `RegType, (~accValue)};
-        {1'b?, `OPa2r}: resultout = acc;
-        {1'b?, `OPr2a}: resultout = regIn;
-        {1'b?, `OPsh}: resultout = {acc `RegType, shifted};
-        {`Float, `OPslt}: resultout = {`Int, setLess};
-        {`Int, `OPslt}: resultout = {`Int, accValue < regInValue };
-    endcase
-end 
-endmodule
-
-module tacky_processor(halt, reset, clk);
-output halt;
-input reset, clk;
-endmodule
-
-module testbench;
-reg reset = 0;
-reg clk = 0;
-wire halted;
-tacky_processor PE(halted, reset, clk);
-initial begin
-  $dumpfile;
-  $dumpvars(0, PE);
-  #10 reset = 1;
-  #10 reset = 0;
-  while (!halted) begin
-    #10 clk = 1;
-    #10 clk = 0;
-  end
-  $finish;
-end
-endmodule
-
 
 // Floating point Verilog modules for CPE480
 // Created February 19, 2019 by Henry Dietz, http://aggregate.org/hankd
@@ -621,38 +547,88 @@ assign ui = {1'b1, f `FFRAC, 16'b0} >> ((128+22) - f `FEXP);
 assign i = (tiny ? 0 : (big ? 32767 : (f `FSIGN ? (-ui) : ui)));
 endmodule
 
-// Testing
-/*
-module testbench;
-reg `FLOAT a, b;
-reg `WORD r;
-wire `FLOAT addr,mulr, recr, shir, i2fr;
-wire `INT f2ir, i, j, ia, ib, addri;
-reg `WORD ref[1024:0];
-f2i myfa(ia, a);
-f2i myfb(ib, b);
-fadd myadd(addr, a, b);
-f2i myaddf(addri, addr);
-fmul mymul(mulr, a, b);
-frecip myrecip(recr, a);
-fshift myshift(shir, a, f2ir);
-f2i myf2i(f2ir, a);
-f2i myib(i, b);
-f2i myiadd(j, addr);
-i2f myi2f(i2fr, f2ir);
-initial begin
-  $readmemh1(ref);
-  r = 0;
+module sh(out, a, b); //out = a >> b (b positive) or a << b (b negative)
+input signed `RegValue a, b;
+output `RegValue out;
+wire `INT flip = 0-b;
+assign out = ((b>=0) ? (a >> b) : (a << flip));
+endmodule
 
-  while (ref[r] != 0) begin
-    a = ref[r]; b = ref[r+1];
-    #1 $display("Testing (int)%x = %d, (int)%x = %d", a, ia, b, ib);
-    if (addr != ref[r+2]) $display("%x + %x = %x # %x", a, b, addr, ref[r+2]);
-    if (mulr != ref[r+3]) $display("%x * %x = %x # %x", a, b, mulr, ref[r+3]);
-    if (recr != ref[r+4]) $display("1 / %x = %x # %x", a, recr, ref[r+4]);
-    r = r + 5;
+module tacky_ALU(resultout, op, acc, regIn);
+output reg `RegSize resultout;
+input `Opcode op;
+input `RegSize acc, regIn;
+wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
+wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
+wire `RegValue shifted, setLess;
+
+sh shift(shifted, accValue, regInValue); 
+fadd floatadd(floatAdd, acc `RegValue, regIn `RegValue);
+fadd floatsub(floatSub, acc `RegValue, regIn `RegValue);
+frecip floatrecip(floatRecip, regIn `RegValue);
+fmul floatmul(floatMul, acc `RegValue, regIn `RegValue);
+fmul floatdiv(floatDiv, acc `RegValue, floatRecip `RegValue);
+
+wire `INT intC, floatC;
+f2i floatreg(intC, regIn `RegValue);
+i2f intreg(floatC, regIn `RegValue);
+
+always @(*)
+begin
+    casez ({acc `RegType, op})
+        {`Float, `OPadd}: resultout = {acc `RegType, floatAdd};
+        {`Float, `OPsub}: resultout = {acc `RegType, floatSub};
+        {`Float, `OPmul}: resultout = {acc `RegType, floatMul};
+        {`Float, `OPdiv}: resultout = {acc `RegType, floatDiv};
+        {`Float, `OPcvt}: resultout = {`Int, intC};
+        {`Int, `OPcvt}: resultout = {`Float, floatC};
+        {`Int, `OPadd}: resultout ={acc `RegType,  (accValue + regInValue)};
+        {`Int, `OPsub}: resultout = {acc `RegType, (accValue - regInValue)};
+        {`Int, `OPmul}: resultout = {acc `RegType, (accValue * regInValue)};
+        {`Int, `OPdiv}: resultout = {acc `RegType, (accValue / regInValue)};
+        {1'b?, `OPand}: resultout = {acc `RegType, (accValue & regInValue)};
+        {1'b?, `OPor} : resultout = {acc `RegType, (accValue | regInValue)};
+        {1'b?, `OPxor}:resultout = {acc `RegType, (accValue ^ regInValue)};
+        {1'b?, `OPnot}: resultout = {acc `RegType, (~accValue)};
+        {1'b?, `OPa2r}: resultout = acc;
+        {1'b?, `OPr2a}: resultout = regIn;
+        {1'b?, `OPsh}: resultout = {acc `RegType, shifted};
+        {`Float, `OPslt}: resultout = {`Int, setLess};
+        {`Int, `OPslt}: resultout = {`Int, accValue < regInValue };
+    endcase
+end 
+endmodule
+
+module tacky_processor(halt, reset, clk);
+output halt;
+input reset, clk;
+
+wire `Word instruction_bus, pc_bus;
+wire `RegSize reg1_bus; reg2_bus; r0_bus, r1_bus;
+
+tacky_jump pc_jump(pc_bus, instruction `Opcode1, );
+tacky_prepend pre_imm()
+tacky_halt halt(halt, instruction `Opcode1);
+tacky_instruction_mem instr_mem(instruction, pc_bus, reset);
+tacky_register_file regfile(reg1_bus, reg2_bus, r0_bus, r1_bus, reset);
+tacky_ALU alu();
+tacky_data_mem data_mem(, reset);
+endmodule
+
+module testbench;
+reg reset = 0;
+reg clk = 0;
+wire halted;
+tacky_processor PE(halted, reset, clk);
+initial begin
+  $dumpfile;
+  $dumpvars(0, PE);
+  #10 reset = 1;
+  #10 reset = 0;
+  while (!halted) begin
+    #10 clk = 1;
+    #10 clk = 0;
   end
+  $finish;
 end
 endmodule
-*/
-
