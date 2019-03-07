@@ -431,6 +431,7 @@ wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
 wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
 wire `RegValue shifted, setLess;
 
+fslt floatslt(setLess, acc `RegValue, regIn `RegValue);
 sh shift(shifted, accValue, regInValue); 
 fadd floatadd(floatAdd, acc `RegValue, regIn `RegValue);
 fadd floatsub(floatSub, acc `RegValue, regIn `RegValue);
