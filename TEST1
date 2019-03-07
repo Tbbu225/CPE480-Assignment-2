@@ -1,0 +1,18 @@
+;test for airthmetic and logic on ints 
+      
+      .text
+      .origin 0x0000
+start:
+      pre 0x00
+      ci8 $r0, 0x00
+      ci8 $r1, 0x01
+      ci8 $r2, 0x02
+      ci8 $r3, 0x03
+      ci8 $r4, 0xff
+      add $r2, sub $r0    ;r0=0x0002 and r1=0x001
+      div $r2, mul $r3    ;r0=0x0001 and r1=0x0003
+      and $r4, or $r4    ;r0=0x0001 and r1=0x00ff
+      not $r1, xor $r2    ;r0=0xff00 and r1=0x00fd
+      and $r0, sh $r1      ;r0=0x0000 and r1=0x00fd
+      and $r3, add $r0    ;r0=0x0003 and r1=0x00fd
+      st $r0, st $r1      ;stores to see output
