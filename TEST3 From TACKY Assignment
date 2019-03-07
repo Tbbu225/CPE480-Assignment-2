@@ -1,0 +1,23 @@
+      .text
+      .origin 0x0000
+start:	a2r	$2,	add	$3
+	and	$4,	cvt	$5
+	cf8	$6, here+0
+	ci8	$7, here+1
+	div	$r0,	jr	$r1
+	jnz8	$r2, here+2
+	jp8	here+3
+	.data		            ; switch to data segment
+	.origin	0x0080
+here:	.word	42
+	.text		; continue where we left off
+	jz8	$r3, here+3
+	lf	$r4,	mul	$ra
+	li	$rv,	not	$sp
+	or	$0,	r2a	$1
+	pre	here+4
+	sh	$2,	slt	$3
+	st	$4,	sub	$5
+	sys	here+5
+	xor	$6,	a2r	$7
+

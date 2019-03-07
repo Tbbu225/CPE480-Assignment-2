@@ -554,14 +554,15 @@ wire `INT flip = 0-b;
 assign out = ((b>=0) ? (a >> b) : (a << flip));
 endmodule
 
-module tacky_ALU(resultout, op, acc, regIn);
-output reg `RegSize resultout;
+module ALU(op, acc, regIn, resultout);
 input `Opcode op;
 input `RegSize acc, regIn;
+output reg `RegSize resultout;
 wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
 wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
 wire `RegValue shifted, setLess;
 
+fslt floatslt(setLess, acc `RegValue, regIn `RegValue);
 sh shift(shifted, accValue, regInValue); 
 fadd floatadd(floatAdd, acc `RegValue, regIn `RegValue);
 fadd floatsub(floatSub, acc `RegValue, regIn `RegValue);
