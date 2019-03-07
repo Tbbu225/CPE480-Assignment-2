@@ -316,12 +316,14 @@ endmodule
 */
 
 //Register file. Handles determining which values to load based on current opcode(s). 
-module tacky_register_file(reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
+module tacky_register_file(pre_value, reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
 
 output `RegSize reg1_value, reg2_value, r0_value, r1_value; //values for registers in instructions, as well as $0 and $1
+output `HalfWord pre_value;                                 //value of pre register
 input `Reg reg1, reg2;                                      //value coressponding to register number to access in instruction
-input `Imm8 Imm8_to_pre;                                    //directconnection 8bit immediate to pre register (for pre instruction)
-input `Word r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2; //results to be stored; first two are for ALU, third is an immediate, and last two are from data memory
+input `Imm8 Imm8_to_pre;                                    //direct connection 8bit immediate to pre register (for pre instruction)
+input `RegSize r0Str, r1Str;                                //results to be stored from ALU
+input `Word RegStr_Imm16, DataStr1, DataStr2;               //results to be stored from an immediate value or from data memory
 input `Opcode1 op1, op2;                                    //opcodes in instruction
 input clk, reset;
 
@@ -343,6 +345,7 @@ assign reg1_value = registers[reg1];
 assign reg2_value = registers[reg2];
 assign r0_value = registers`Acc0;
 assign r1_value = registers`Acc1;
+assign pre_value = pre;
 
 always @(negedge clk)
 begin
@@ -391,7 +394,7 @@ endmodule
 
 //Data memory
 module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1, reset);
-output `Word reg1Str, reg2Str;      //Values to store in register file 
+output reg `Word reg1Str, reg2Str;      //Values to store in register file 
 input `Word reg1, reg2, r0, r1;     //values of registers specifed from instructions
 input `Opcode op1, op2;             //opcode values in instructions
 input reset;
@@ -557,10 +560,10 @@ assign out = ((b>=0) ? (a >> b) : (a << flip));
 endmodule
 
 //ALU unit
-module tacky_ALU(op, acc, regIn, resultout);
+module tacky_ALU(resultout, op, acc, regIn);
+output reg `RegSize resultout;
 input `Opcode op;
 input `RegSize acc, regIn;
-output reg `RegSize resultout;
 wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
 wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
 wire `RegValue shifted, setLess;
@@ -607,16 +610,18 @@ module tacky_processor(halt, reset, clk);
 output halt;
 input reset, clk;
 
-wire `Word instruction_bus, pc_bus;
-wire `RegSize reg1_bus; reg2_bus; r0_bus, r1_bus;
+wire `Word instruction_bus, pc_bus, immediate_bus, mem1_bus, mem2_bus;
+wire `RegSize reg1_bus, reg2_bus, r0_bus, r1_bus, ALU1_bus, ALU2_bus;
+wire `HalfWord pre_bus;
 
-tacky_jump pc_jump(pc_bus, instruction `Opcode1, );
-tacky_prepend pre_imm()
-tacky_halt halt(halt, instruction `Opcode1);
-tacky_instruction_mem instr_mem(instruction, pc_bus, reset);
-tacky_register_file regfile(reg1_bus, reg2_bus, r0_bus, r1_bus, reset);
-tacky_ALU alu();
-tacky_data_mem data_mem(, reset);
+tacky_jump pc_jump(pc_bus, instruction_bus `Opcode1, instruction_bus `Opcode2, immediate_bus, reg1_bus `RegValue, reg2_bus `RegValue, clk, reset); //
+tacky_prepend pre_imm(immediate_bus, pre_bus, instruction_bus `Imm8); //
+tacky_halt halter(halt, instruction_bus `Opcode1); //
+tacky_instruction_mem instr_mem(instruction_bus, pc_bus, reset); //
+tacky_register_file regfile(pre_bus, reg1_bus, reg2_bus, r0_bus, r1_bus, instruction_bus `Reg1, instruction_bus `Reg2, instruction_bus `Imm8, ALU1_bus, ALU2_bus, immediate_bus, mem1_bus, mem2_bus, instruction_bus `Opcode1, instruction_bus `Opcode2, clk, reset); //
+tacky_ALU alu1(ALU1_bus, instruction_bus `Opcode1, r0_bus, reg1_bus); //
+tacky_ALU alu2(ALU2_bus, instruction_bus `Opcode2, r1_bus, reg2_bus); //
+tacky_data_mem data_mem(mem1_bus, mem2_bus, instruction_bus `Opcode1, instruction_bus `Opcode2, reg1_bus `RegValue, reg2_bus `RegValue, r0_bus `RegValue, r1_bus `RegValue, reset); //
 endmodule
 
 module testbench;
