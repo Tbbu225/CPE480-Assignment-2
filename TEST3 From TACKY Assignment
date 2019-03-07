@@ -20,8 +20,4 @@ here:	.word	42
 	st	$4,	sub	$5
 	sys	here+5
 	xor	$6,	a2r	$7
-  cf $r0, 0xFFFF
-  ci $r1, 0xF00F
-  jnz $ra, 0xFF00
-  jz $rv, 0xFFF0
-  jp 0x000F
+
