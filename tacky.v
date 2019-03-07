@@ -318,11 +318,11 @@ endmodule
 //Register file. Handles determining which values to load based on current opcode(s). 
 module tacky_register_file(reg1_value, reg2_value, r0_value, r1_value, reg1, reg2, Imm8_to_pre, r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2, op1, op2, clk, reset);
 
-output `RegSize reg1_value, reg2_value, r0_value, r1_value;
-input `Reg reg1, reg2;
-input `Imm8 Imm8_to_pre;
-input `Word r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2;
-input `Opcode1 op1, op2;
+output `RegSize reg1_value, reg2_value, r0_value, r1_value; //values for registers in instructions, as well as $0 and $1
+input `Reg reg1, reg2;                                      //value coressponding to register number to access in instruction
+input `Imm8 Imm8_to_pre;                                    //directconnection 8bit immediate to pre register (for pre instruction)
+input `Word r0Str, r1Str, RegStr_Imm16, DataStr1, DataStr2; //results to be stored; first two are for ALU, third is an immediate, and last two are from data memory
+input `Opcode1 op1, op2;                                    //opcodes in instruction
 input clk, reset;
 
 reg `RegSize registers `RegNum;
@@ -389,10 +389,12 @@ module tacky_prepend(Imm16, pre, Imm8);
     assign Imm16 = {pre, Imm8};
 endmodule
 
-//Data memory (WIP)
+//Data memory
 module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1, reset);
-output reg `Word reg1Str, reg2Str;
-input `Word reg1, reg2, r0, r1; input `Opcode op1, op2; input reset;
+output `Word reg1Str, reg2Str;      //Values to store in register file 
+input `Word reg1, reg2, r0, r1;     //values of registers specifed from instructions
+input `Opcode op1, op2;             //opcode values in instructions
+input reset;
 
 reg `Word memory `MemSize;
 
