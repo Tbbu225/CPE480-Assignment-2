@@ -269,16 +269,16 @@ reg `Word memory `MemSize;
 
 initial 
 begin
-    $readmemh("instructions.vmem", memory);
-    //$readmemh0(memory);
+    //$readmemh("instructions.vmem", memory);
+    $readmemh0(memory);
 end
 
 assign instruction = memory [pc];
 
 always @ (posedge reset) 
 begin
-    $readmemh("instructions.vmem", memory);
-    //$readmemh0(memory);
+    //$readmemh("instructions.vmem", memory);
+    $readmemh0(memory);
 end
 
 endmodule
@@ -403,8 +403,8 @@ reg `Word memory `MemSize;
 
 initial 
 begin
-    $readmemh("data.vmem", memory);
-    //$readmemh1(memory);
+    //$readmemh("data.vmem", memory);
+    $readmemh1(memory);
 end
 
 always @(*)
@@ -417,8 +417,8 @@ end
 
 always @ (posedge reset) 
 begin
-    $readmemh("data.vmem", memory);
-    //$readmemh1(memory);
+    //$readmemh("data.vmem", memory);
+    $readmemh1(memory);
 end
 
 endmodule
@@ -508,8 +508,8 @@ module frecip(r, a);
 output wire `FLOAT r;
 input wire `FLOAT a;
 reg [6:0] look[127:0];
-initial $readmemh("lookup.vmem", look);
-//initial $readmemh2(look);
+//initial $readmemh("lookup.vmem", look);
+initial $readmemh2(look);
 assign r `FSIGN = a `FSIGN;
 assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
 assign r `FFRAC = look[a `FFRAC];
