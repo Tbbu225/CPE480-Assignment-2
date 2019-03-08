@@ -254,6 +254,7 @@ module tacky_prepend(Imm16, pre, Imm8);
     assign Imm16 = {pre, Imm8};
 endmodule
 
+
 //Data memory
 module tacky_data_mem(reg1Str, reg2Str, op1, op2, reg1, reg2, r0, r1, reset);
 output reg `Word reg1Str, reg2Str;      //Values to store in register file 
@@ -268,13 +269,14 @@ begin
     $readmemh1(memory);
 end
 
-always @(*)
+always @(op1 or op2)
 begin
     if(op1 == `OPst) memory[reg1] = r0;
     if(op1 <= `OPjr && op2 == `OPst) memory[reg2] = r1;
     if(op1 == `OPlf || op1 == `OPli) reg1Str = memory[r0];
     if(op1 <= `OPjr && (op2 == `OPlf || op2 == `OPli) ) reg2Str = memory[r1];
 end
+
 
 always @ (posedge reset) 
 begin
@@ -418,6 +420,7 @@ wire `INT flip = 0-b;
 assign out = ((b>=0) ? (a >> b) : (a << flip));
 endmodule
 
+
 //ALU unit
 module tacky_ALU(resultout, op, acc, regIn);
 output reg `RegSize resultout;
@@ -456,14 +459,14 @@ begin
         {1'b?, `OPor} : resultout = {acc `RegType, (accValue | regInValue)};
         {1'b?, `OPxor}:resultout = {acc `RegType, (accValue ^ regInValue)};
         {1'b?, `OPnot}: resultout = {acc `RegType, (~accValue)};
-        {1'b?, `OPa2r}: resultout = acc;
-        {1'b?, `OPr2a}: resultout = regIn;
         {1'b?, `OPsh}: resultout = {acc `RegType, shifted};
         {`Float, `OPslt}: resultout = {`Int, setLess};
         {`Int, `OPslt}: resultout = {`Int, accValue < regInValue };
+        default: resultout = acc;
     endcase
 end 
 endmodule
+
 
 //Complete processor
 module tacky_processor(halt, reset, clk);
