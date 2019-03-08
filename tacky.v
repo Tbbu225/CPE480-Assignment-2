@@ -418,7 +418,8 @@ input `Opcode op;
 input `RegSize acc, regIn;
 wire `INT accValue = acc `RegValue, regInValue = regIn `RegValue;
 wire `FLOAT floatAdd, floatRecip, floatMul, floatSub, floatDiv;
-wire `RegValue shifted, setLess;
+wire `RegValue shifted;
+wire setLess;
 
 fslt floatslt(setLess, acc `RegValue, regIn `RegValue);
 sh shift(shifted, accValue, regInValue); 
