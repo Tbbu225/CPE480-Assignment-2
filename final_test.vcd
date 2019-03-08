@@ -1,0 +1,366 @@
+$date
+	Fri Mar  8 13:32:23 2019
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module testbench $end
+$scope module PE $end
+$var wire 1 ! clk $end
+$var wire 17 " r0_bus [16:0] $end
+$var wire 17 # r1_bus [16:0] $end
+$var wire 1 $ reset $end
+$var wire 17 % reg2_bus [16:0] $end
+$var wire 17 & reg1_bus [16:0] $end
+$var wire 8 ' pre_bus [7:0] $end
+$var wire 16 ( pc_bus [15:0] $end
+$var wire 16 ) mem2_bus [15:0] $end
+$var wire 16 * mem1_bus [15:0] $end
+$var wire 16 + instruction_bus [15:0] $end
+$var wire 16 , immediate_bus [15:0] $end
+$var wire 1 - halt $end
+$var wire 17 . ALU2_bus [16:0] $end
+$var wire 17 / ALU1_bus [16:0] $end
+$scope module alu1 $end
+$var wire 17 0 acc [16:0] $end
+$var wire 5 1 op [4:0] $end
+$var wire 16 2 shifted [15:0] $end
+$var wire 16 3 setLess [15:0] $end
+$var wire 16 4 regInValue [15:0] $end
+$var wire 17 5 regIn [16:0] $end
+$var wire 16 6 intC [15:0] $end
+$var wire 16 7 floatSub [15:0] $end
+$var wire 16 8 floatRecip [15:0] $end
+$var wire 16 9 floatMul [15:0] $end
+$var wire 16 : floatDiv [15:0] $end
+$var wire 16 ; floatC [15:0] $end
+$var wire 16 < floatAdd [15:0] $end
+$var wire 16 = accValue [15:0] $end
+$var reg 17 > resultout [16:0] $end
+$scope module floatadd $end
+$var wire 16 ? a [15:0] $end
+$var wire 16 @ b [15:0] $end
+$var wire 1 A eqsgn $end
+$var wire 8 B texp [7:0] $end
+$var wire 8 C tbman [7:0] $end
+$var wire 8 D taman [7:0] $end
+$var wire 1 E ssign $end
+$var wire 9 F sman [8:0] $end
+$var wire 5 G slead [4:0] $end
+$var wire 9 H sfrac [8:0] $end
+$var wire 9 I sexp [8:0] $end
+$var wire 16 J s [15:0] $end
+$var wire 16 K r [15:0] $end
+$var wire 1 L amgt $end
+$var wire 1 M aegt $end
+$scope module m0 $end
+$var wire 16 N s [15:0] $end
+$var wire 5 O t [4:0] $end
+$var wire 8 P s8 [7:0] $end
+$var wire 4 Q s4 [3:0] $end
+$var wire 2 R s2 [1:0] $end
+$var wire 5 S d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module floatdiv $end
+$var wire 16 T a [15:0] $end
+$var wire 1 U s $end
+$var wire 16 V r [15:0] $end
+$var wire 16 W m [15:0] $end
+$var wire 8 X e [7:0] $end
+$var wire 16 Y b [15:0] $end
+$upscope $end
+$scope module floatmul $end
+$var wire 16 Z a [15:0] $end
+$var wire 16 [ b [15:0] $end
+$var wire 1 \ s $end
+$var wire 16 ] r [15:0] $end
+$var wire 16 ^ m [15:0] $end
+$var wire 8 _ e [7:0] $end
+$upscope $end
+$scope module floatrecip $end
+$var wire 16 ` a [15:0] $end
+$var wire 16 a r [15:0] $end
+$upscope $end
+$scope module floatreg $end
+$var wire 16 b f [15:0] $end
+$var wire 16 c ui [15:0] $end
+$var wire 1 d tiny $end
+$var wire 16 e i [15:0] $end
+$var wire 1 f big $end
+$scope module m0 $end
+$var wire 16 g a [15:0] $end
+$var wire 16 h b [15:0] $end
+$var wire 1 d torf $end
+$upscope $end
+$scope module m1 $end
+$var wire 16 i a [15:0] $end
+$var wire 16 j b [15:0] $end
+$var wire 1 f torf $end
+$upscope $end
+$upscope $end
+$scope module floatslt $end
+$var wire 16 k a [15:0] $end
+$var wire 16 l b [15:0] $end
+$var wire 1 m torf $end
+$upscope $end
+$scope module floatsub $end
+$var wire 16 n a [15:0] $end
+$var wire 16 o b [15:0] $end
+$var wire 1 p eqsgn $end
+$var wire 8 q texp [7:0] $end
+$var wire 8 r tbman [7:0] $end
+$var wire 8 s taman [7:0] $end
+$var wire 1 t ssign $end
+$var wire 9 u sman [8:0] $end
+$var wire 5 v slead [4:0] $end
+$var wire 9 w sfrac [8:0] $end
+$var wire 9 x sexp [8:0] $end
+$var wire 16 y s [15:0] $end
+$var wire 16 z r [15:0] $end
+$var wire 1 { amgt $end
+$var wire 1 | aegt $end
+$scope module m0 $end
+$var wire 16 } s [15:0] $end
+$var wire 5 ~ t [4:0] $end
+$var wire 8 !" s8 [7:0] $end
+$var wire 4 "" s4 [3:0] $end
+$var wire 2 #" s2 [1:0] $end
+$var wire 5 $" d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module intreg $end
+$var wire 16 %" i [15:0] $end
+$var wire 16 &" pos [15:0] $end
+$var wire 5 '" lead [4:0] $end
+$var wire 16 (" f [15:0] $end
+$scope module m0 $end
+$var wire 16 )" s [15:0] $end
+$var wire 5 *" t [4:0] $end
+$var wire 8 +" s8 [7:0] $end
+$var wire 4 ," s4 [3:0] $end
+$var wire 2 -" s2 [1:0] $end
+$var wire 5 ." d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module shift $end
+$var wire 16 /" a [15:0] $end
+$var wire 16 0" b [15:0] $end
+$var wire 16 1" out [15:0] $end
+$var wire 16 2" flip [15:0] $end
+$upscope $end
+$upscope $end
+$scope module alu2 $end
+$var wire 17 3" acc [16:0] $end
+$var wire 5 4" op [4:0] $end
+$var wire 16 5" shifted [15:0] $end
+$var wire 16 6" setLess [15:0] $end
+$var wire 16 7" regInValue [15:0] $end
+$var wire 17 8" regIn [16:0] $end
+$var wire 16 9" intC [15:0] $end
+$var wire 16 :" floatSub [15:0] $end
+$var wire 16 ;" floatRecip [15:0] $end
+$var wire 16 <" floatMul [15:0] $end
+$var wire 16 =" floatDiv [15:0] $end
+$var wire 16 >" floatC [15:0] $end
+$var wire 16 ?" floatAdd [15:0] $end
+$var wire 16 @" accValue [15:0] $end
+$var reg 17 A" resultout [16:0] $end
+$scope module floatadd $end
+$var wire 16 B" a [15:0] $end
+$var wire 16 C" b [15:0] $end
+$var wire 1 D" eqsgn $end
+$var wire 8 E" texp [7:0] $end
+$var wire 8 F" tbman [7:0] $end
+$var wire 8 G" taman [7:0] $end
+$var wire 1 H" ssign $end
+$var wire 9 I" sman [8:0] $end
+$var wire 5 J" slead [4:0] $end
+$var wire 9 K" sfrac [8:0] $end
+$var wire 9 L" sexp [8:0] $end
+$var wire 16 M" s [15:0] $end
+$var wire 16 N" r [15:0] $end
+$var wire 1 O" amgt $end
+$var wire 1 P" aegt $end
+$scope module m0 $end
+$var wire 16 Q" s [15:0] $end
+$var wire 5 R" t [4:0] $end
+$var wire 8 S" s8 [7:0] $end
+$var wire 4 T" s4 [3:0] $end
+$var wire 2 U" s2 [1:0] $end
+$var wire 5 V" d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module floatdiv $end
+$var wire 16 W" a [15:0] $end
+$var wire 1 X" s $end
+$var wire 16 Y" r [15:0] $end
+$var wire 16 Z" m [15:0] $end
+$var wire 8 [" e [7:0] $end
+$var wire 16 \" b [15:0] $end
+$upscope $end
+$scope module floatmul $end
+$var wire 16 ]" a [15:0] $end
+$var wire 16 ^" b [15:0] $end
+$var wire 1 _" s $end
+$var wire 16 `" r [15:0] $end
+$var wire 16 a" m [15:0] $end
+$var wire 8 b" e [7:0] $end
+$upscope $end
+$scope module floatrecip $end
+$var wire 16 c" a [15:0] $end
+$var wire 16 d" r [15:0] $end
+$upscope $end
+$scope module floatreg $end
+$var wire 16 e" f [15:0] $end
+$var wire 16 f" ui [15:0] $end
+$var wire 1 g" tiny $end
+$var wire 16 h" i [15:0] $end
+$var wire 1 i" big $end
+$scope module m0 $end
+$var wire 16 j" a [15:0] $end
+$var wire 16 k" b [15:0] $end
+$var wire 1 g" torf $end
+$upscope $end
+$scope module m1 $end
+$var wire 16 l" a [15:0] $end
+$var wire 16 m" b [15:0] $end
+$var wire 1 i" torf $end
+$upscope $end
+$upscope $end
+$scope module floatslt $end
+$var wire 16 n" a [15:0] $end
+$var wire 16 o" b [15:0] $end
+$var wire 1 p" torf $end
+$upscope $end
+$scope module floatsub $end
+$var wire 16 q" a [15:0] $end
+$var wire 16 r" b [15:0] $end
+$var wire 1 s" eqsgn $end
+$var wire 8 t" texp [7:0] $end
+$var wire 8 u" tbman [7:0] $end
+$var wire 8 v" taman [7:0] $end
+$var wire 1 w" ssign $end
+$var wire 9 x" sman [8:0] $end
+$var wire 5 y" slead [4:0] $end
+$var wire 9 z" sfrac [8:0] $end
+$var wire 9 {" sexp [8:0] $end
+$var wire 16 |" s [15:0] $end
+$var wire 16 }" r [15:0] $end
+$var wire 1 ~" amgt $end
+$var wire 1 !# aegt $end
+$scope module m0 $end
+$var wire 16 "# s [15:0] $end
+$var wire 5 ## t [4:0] $end
+$var wire 8 $# s8 [7:0] $end
+$var wire 4 %# s4 [3:0] $end
+$var wire 2 &# s2 [1:0] $end
+$var wire 5 '# d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module intreg $end
+$var wire 16 (# i [15:0] $end
+$var wire 16 )# pos [15:0] $end
+$var wire 5 *# lead [4:0] $end
+$var wire 16 +# f [15:0] $end
+$scope module m0 $end
+$var wire 16 ,# s [15:0] $end
+$var wire 5 -# t [4:0] $end
+$var wire 8 .# s8 [7:0] $end
+$var wire 4 /# s4 [3:0] $end
+$var wire 2 0# s2 [1:0] $end
+$var wire 5 1# d [4:0] $end
+$upscope $end
+$upscope $end
+$scope module shift $end
+$var wire 16 2# a [15:0] $end
+$var wire 16 3# b [15:0] $end
+$var wire 16 4# out [15:0] $end
+$var wire 16 5# flip [15:0] $end
+$upscope $end
+$upscope $end
+$scope module data_mem $end
+$var wire 5 6# op1 [4:0] $end
+$var wire 5 7# op2 [4:0] $end
+$var wire 16 8# r0 [15:0] $end
+$var wire 16 9# r1 [15:0] $end
+$var wire 16 :# reg1 [15:0] $end
+$var wire 16 ;# reg2 [15:0] $end
+$var wire 1 $ reset $end
+$var reg 16 <# reg1Str [15:0] $end
+$var reg 16 =# reg2Str [15:0] $end
+$upscope $end
+$scope module halter $end
+$var wire 5 ># op1 [4:0] $end
+$var wire 1 - halt $end
+$upscope $end
+$scope module instr_mem $end
+$var wire 16 ?# instruction [15:0] $end
+$var wire 1 $ reset $end
+$var wire 16 @# pc [15:0] $end
+$upscope $end
+$scope module pc_jump $end
+$var wire 1 ! clk $end
+$var wire 5 A# op1 [4:0] $end
+$var wire 5 B# op2 [4:0] $end
+$var wire 16 C# reg1 [15:0] $end
+$var wire 16 D# reg2 [15:0] $end
+$var wire 1 $ reset $end
+$var wire 16 E# next_pc [15:0] $end
+$var wire 16 F# immediate [15:0] $end
+$var reg 16 G# pc [15:0] $end
+$var reg 4 H# signal [3:0] $end
+$scope module count $end
+$var wire 4 I# control_logic [3:0] $end
+$var wire 16 J# new_pc [15:0] $end
+$var wire 16 K# pc [15:0] $end
+$var wire 16 L# reg1 [15:0] $end
+$var wire 16 M# reg2 [15:0] $end
+$var wire 16 N# reg1_vs_reg2 [15:0] $end
+$var wire 16 O# pc_result [15:0] $end
+$var wire 16 P# pc_inc_vs_immediate [15:0] $end
+$var wire 16 Q# pc_inc [15:0] $end
+$var wire 16 R# immediate [15:0] $end
+$var wire 1 S# compare_result $end
+$scope module compare $end
+$var wire 2 T# condition [1:0] $end
+$var wire 16 U# value [15:0] $end
+$var reg 1 S# result $end
+$upscope $end
+$scope module inc $end
+$var wire 16 V# pc [15:0] $end
+$var wire 16 W# newpc [15:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$scope module pre_imm $end
+$var wire 8 X# Imm8 [7:0] $end
+$var wire 8 Y# pre [7:0] $end
+$var wire 16 Z# Imm16 [15:0] $end
+$upscope $end
+$scope module regfile $end
+$var wire 16 [# DataStr1 [15:0] $end
+$var wire 16 \# DataStr2 [15:0] $end
+$var wire 8 ]# Imm8_to_pre [7:0] $end
+$var wire 16 ^# RegStr_Imm16 [15:0] $end
+$var wire 1 ! clk $end
+$var wire 5 _# op1 [15:11] $end
+$var wire 5 `# op2 [15:11] $end
+$var wire 8 a# pre_value [7:0] $end
+$var wire 17 b# r0Str [16:0] $end
+$var wire 17 c# r0_value [16:0] $end
+$var wire 17 d# r1Str [16:0] $end
+$var wire 17 e# r1_value [16:0] $end
+$var wire 3 f# reg1 [2:0] $end
+$var wire 17 g# reg1_value [16:0] $end
+$var wire 3 h# reg2 [2:0] $end
+$var wire 17 i# reg2_value [16:0] $end
+$var wire 1 $ reset $end
+$var reg 1 j# i $end
+$var reg 8 k# pre [7:0] $end
+$upscope $end
+$upscope $end
+$upscope $end

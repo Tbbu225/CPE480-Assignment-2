@@ -17,7 +17,7 @@
 `define Acc1    [1]
 `define NumReg  8
 
-// opcode values
+// opcode values, also state numbers
 `define OPnot	5'b00000
 `define OPand	5'b00001
 `define OPor	5'b00010
@@ -155,14 +155,16 @@ reg `Word memory `MemSize;
 
 initial 
 begin
-    $readmemh0(memory);
+    //$readmemh0(memory);
+    $readmemh("instructions.vmem", memory);
 end
 
 assign instruction = memory [pc];
 
 always @ (posedge reset) 
 begin
-    $readmemh0(memory);
+    //$readmemh0(memory);
+    $readmemh("instructions.vmem", memory);
 end
 
 endmodule
@@ -256,7 +258,8 @@ reg `Word memory `MemSize;
 
 initial 
 begin
-    $readmemh1(memory);
+    //$readmemh1(memory);
+    $readmemh("data.vmem", memory);
 end
 
 always @(op1 or op2 or reg1 or reg2 or r0 or r1)
@@ -270,7 +273,8 @@ end
 
 always @ (posedge reset) 
 begin
-    $readmemh1(memory);
+    //$readmemh1(memory);
+    $readmemh("data.vmem", memory);
 end
 
 endmodule
@@ -360,7 +364,8 @@ module frecip(r, a);
 output wire `FLOAT r;
 input wire `FLOAT a;
 reg [6:0] look[127:0];
-initial $readmemh2(look);
+//initial $readmemh2(look);
+initial $readmemh("lookup.vmem", look);
 assign r `FSIGN = a `FSIGN;
 assign r `FEXP = 253 + (!(a `FFRAC)) - a `FEXP;
 assign r `FFRAC = look[a `FFRAC];
@@ -476,26 +481,18 @@ tacky_ALU alu2(ALU2_bus, instruction_bus `Opcode2, r1_bus, reg2_bus); //ALU for 
 tacky_data_mem data_mem(mem1_bus, mem2_bus, instruction_bus `Opcode1, instruction_bus `Opcode2, reg1_bus `RegValue, reg2_bus `RegValue, r0_bus `RegValue, r1_bus `RegValue, reset); //data memory
 endmodule
 
-
 module testbench;
 reg reset = 0;
 reg clk = 0;
 wire halted;
+integer i = 0;
+
 tacky_processor PE(halted, reset, clk);
 initial begin
-  $dumpfile;
+  //$dumpfile;
+  $dumpfile("final_test.vcd");
   $dumpvars(0, PE);
-  #10 reset = 1;
-  #10 reset = 0;
-  while (!halted) begin
-    #1 clk = 1;
-    #1 clk = 0;
-  end
   $finish;
-end
-
-initial begin
-    #(10**10) $finish;
 end
 
 endmodule
