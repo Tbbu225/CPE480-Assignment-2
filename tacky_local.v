@@ -167,6 +167,7 @@ begin
     $readmemh("instructions.vmem", memory);
 end
 
+
 endmodule
 
 //Register file. Handles determining which values to load based on current opcode(s). 
@@ -184,16 +185,18 @@ input clk, reset;
 reg `RegSize registers `RegNum;
 reg `HalfWord pre;
 
-reg i;
+integer i; 
 
 initial 
 begin
+    //Do NOT use reg for a for loop variable; causes simulation to get stuck at 0
     for (i = 0; i < `NumReg; i = i + 1)
     begin
         registers[i] = 0;
     end
     pre = 0;
 end
+
 
 assign reg1_value = registers[reg1];
 assign reg2_value = registers[reg2];
@@ -276,6 +279,7 @@ begin
     //$readmemh1(memory);
     $readmemh("data.vmem", memory);
 end
+
 
 endmodule
 
@@ -488,11 +492,21 @@ wire halted;
 integer i = 0;
 
 tacky_processor PE(halted, reset, clk);
+
 initial begin
-  //$dumpfile;
-  $dumpfile("final_test.vcd");
-  $dumpvars(0, PE);
-  $finish;
+    $dumpfile("final_test.vcd");
+    $dumpvars(0, PE);
+    #10 reset = 1;
+    #10 reset = 0;
+    while (!halted) begin
+        #1 clk = 1;
+        #1 clk = 0;
+    end
+    $finish;
+end
+
+initial begin
+    #(10**10) $finish;
 end
 
 endmodule

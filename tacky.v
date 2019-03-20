@@ -182,7 +182,7 @@ input clk, reset;
 reg `RegSize registers `RegNum;
 reg `HalfWord pre;
 
-reg i;
+integer i;
 
 initial 
 begin
@@ -482,7 +482,9 @@ module testbench;
 reg reset = 0;
 reg clk = 0;
 wire halted;
+
 tacky_processor PE(halted, reset, clk);
+
 initial begin
   $dumpfile;
   $dumpvars(0, PE);
